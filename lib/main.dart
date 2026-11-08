@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:temperature_converter/temperature.dart';
 
 void main() {
   runApp(const TemperatureConverterApp());
@@ -20,15 +21,6 @@ class TemperatureConverterApp extends StatelessWidget {
       home: const ConverterScreen(),
     );
   }
-}
-
-enum ConversionType {
-  celsiusToFahrenheit('Celsius to Fahrenheit (°C → °F)'),
-  fahrenheitToCelsius('Fahrenheit to Celsius (°F → °C)');
-
-  const ConversionType(this.label);
-
-  final String label;
 }
 
 const TextStyle _labelStyle = TextStyle(
@@ -56,6 +48,7 @@ class ConverterScreen extends StatefulWidget {
 class _ConverterScreenState extends State<ConverterScreen> {
   final TextEditingController _degreesController = TextEditingController();
   ConversionType _type = ConversionType.fahrenheitToCelsius;
+  String _result = '';
 
   @override
   void dispose() {
@@ -65,6 +58,16 @@ class _ConverterScreenState extends State<ConverterScreen> {
 
   void _convert() {
     FocusManager.instance.primaryFocus?.unfocus();
+    final value = double.tryParse(_degreesController.text.trim());
+    if (value == null) {
+      setState(() => _result = '');
+      return;
+    }
+
+    final converted = _type.convert(value);
+    setState(() {
+      _result = '${converted.toStringAsFixed(2)} ${_type.resultUnit}';
+    });
   }
 
   @override
@@ -126,13 +129,13 @@ class _ConverterScreenState extends State<ConverterScreen> {
                       const SizedBox(height: 26),
                       const Text('Result', style: _labelStyle),
                       const SizedBox(height: 8),
-                      const SizedBox(
+                      SizedBox(
                         height: 32,
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            '',
-                            key: Key('result-text'),
+                            _result,
+                            key: const Key('result-text'),
                             style: _valueStyle,
                           ),
                         ),
