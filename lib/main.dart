@@ -49,6 +49,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
   final TextEditingController _degreesController = TextEditingController();
   ConversionType _type = ConversionType.fahrenheitToCelsius;
   String _result = '';
+  String? _error;
 
   @override
   void dispose() {
@@ -58,14 +59,27 @@ class _ConverterScreenState extends State<ConverterScreen> {
 
   void _convert() {
     FocusManager.instance.primaryFocus?.unfocus();
-    final value = double.tryParse(_degreesController.text.trim());
+    final raw = _degreesController.text.trim();
+    if (raw.isEmpty) {
+      setState(() {
+        _error = 'Please enter a temperature value.';
+        _result = '';
+      });
+      return;
+    }
+
+    final value = double.tryParse(raw);
     if (value == null) {
-      setState(() => _result = '');
+      setState(() {
+        _error = 'Please enter a valid number.';
+        _result = '';
+      });
       return;
     }
 
     final converted = _type.convert(value);
     setState(() {
+      _error = null;
       _result = '${converted.toStringAsFixed(2)} ${_type.resultUnit}';
     });
   }
@@ -126,6 +140,17 @@ class _ConverterScreenState extends State<ConverterScreen> {
                           ),
                         ],
                       ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _error!,
+                          key: const Key('error-text'),
+                          style: const TextStyle(
+                            color: Color(0xFFD32F2F),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 26),
                       const Text('Result', style: _labelStyle),
                       const SizedBox(height: 8),
